@@ -4,84 +4,84 @@ use is_terminal::IsTerminal;
 use std::io::{stdin, Read};
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about = "多模型 AI 对话命令行工具", long_about = None)]
 pub struct Cli {
-    /// Select a LLM model
+    /// 选择要使用的语言模型
     #[clap(short, long)]
     pub model: Option<String>,
-    /// Use the system prompt
+    /// 使用自定义系统提示词
     #[clap(long)]
     pub prompt: Option<String>,
-    /// Select a role
+    /// 选择角色
     #[clap(short, long)]
     pub role: Option<String>,
-    /// Start or join a session
+    /// 创建或加入会话
     #[clap(short = 's', long)]
     pub session: Option<Option<String>>,
-    /// Ensure the session is empty
+    /// 确保会话为空
     #[clap(long)]
     pub empty_session: bool,
-    /// Ensure the new conversation is saved to the session
+    /// 将本次新对话保存到会话
     #[clap(long)]
     pub save_session: bool,
-    /// Start a agent
+    /// 启动智能体
     #[clap(short = 'a', long)]
     pub agent: Option<String>,
-    /// Set agent variables
+    /// 设置智能体变量
     #[clap(long, value_names = ["NAME", "VALUE"], num_args = 2)]
     pub agent_variable: Vec<String>,
-    /// Start a RAG
+    /// 启动 RAG 知识库
     #[clap(long)]
     pub rag: Option<String>,
-    /// Rebuild the RAG to sync document changes
+    /// 重新构建 RAG 以同步文档变更
     #[clap(long)]
     pub rebuild_rag: bool,
-    /// Execute a macro
+    /// 执行宏
     #[clap(long = "macro", value_name = "MACRO")]
     pub macro_name: Option<String>,
-    /// Serve the LLM API and WebAPP
+    /// 启动 LLM API 服务和 Web 应用
     #[clap(long, value_name = "ADDRESS")]
     pub serve: Option<Option<String>>,
-    /// Execute commands in natural language
+    /// 使用自然语言执行命令
     #[clap(short = 'e', long)]
     pub execute: bool,
-    /// Output code only
+    /// 仅输出代码
     #[clap(short = 'c', long)]
     pub code: bool,
-    /// Include files, directories, or URLs
+    /// 附加文件、目录或 URL
     #[clap(short = 'f', long, value_name = "FILE")]
     pub file: Vec<String>,
-    /// Turn off stream mode
+    /// 关闭流式输出
     #[clap(short = 'S', long)]
     pub no_stream: bool,
-    /// Display the message without sending it
+    /// 仅显示消息，不发送给模型
     #[clap(long)]
     pub dry_run: bool,
-    /// Display information
+    /// 显示运行信息
     #[clap(long)]
     pub info: bool,
-    /// Sync models updates
+    /// 同步模型列表更新
     #[clap(long)]
     pub sync_models: bool,
-    /// List all available chat models
+    /// 列出所有可用的对话模型
     #[clap(long)]
     pub list_models: bool,
-    /// List all roles
+    /// 列出所有角色
     #[clap(long)]
     pub list_roles: bool,
-    /// List all sessions
+    /// 列出所有会话
     #[clap(long)]
     pub list_sessions: bool,
-    /// List all agents
+    /// 列出所有智能体
     #[clap(long)]
     pub list_agents: bool,
-    /// List all RAGs
+    /// 列出所有 RAG 知识库
     #[clap(long)]
     pub list_rags: bool,
-    /// List all macros
+    /// 列出所有宏
     #[clap(long)]
     pub list_macros: bool,
-    /// Input text
+    /// 输入文本
     #[clap(trailing_var_arg = true)]
     text: Vec<String>,
 }
@@ -92,7 +92,7 @@ impl Cli {
         if !stdin().is_terminal() {
             let _ = stdin()
                 .read_to_string(&mut stdin_text)
-                .context("Invalid stdin pipe")?;
+                .context("标准输入管道无效")?;
         };
         match self.text.is_empty() {
             true => {

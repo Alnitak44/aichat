@@ -61,7 +61,7 @@ pub trait Client: Sync + Send {
         let client = builder
             .connect_timeout(Duration::from_secs(timeout))
             .build()
-            .with_context(|| "Failed to build client")?;
+            .with_context(|| "创建 API 客户端失败")?;
         Ok(client)
     }
 
@@ -74,7 +74,7 @@ pub trait Client: Sync + Send {
         let data = input.prepare_completion_data(self.model(), false)?;
         self.chat_completions_inner(&client, data)
             .await
-            .with_context(|| "Failed to call chat-completions api")
+            .with_context(|| "调用 Chat Completions API 失败")
     }
 
     async fn chat_completions_streaming(
@@ -96,7 +96,7 @@ pub trait Client: Sync + Send {
                 self.chat_completions_streaming_inner(&client, handler, data).await
             } => {
                 handler.done();
-                ret.with_context(|| "Failed to call chat-completions api")
+                ret.with_context(|| "调用 Chat Completions API 失败")
             }
             _ = wait_abort_signal(&abort_signal) => {
                 handler.done();
@@ -109,14 +109,14 @@ pub trait Client: Sync + Send {
         let client = self.build_client()?;
         self.embeddings_inner(&client, data)
             .await
-            .context("Failed to call embeddings api")
+            .context("调用 Embeddings API 失败")
     }
 
     async fn rerank(&self, data: &RerankData) -> Result<RerankOutput> {
         let client = self.build_client()?;
         self.rerank_inner(&client, data)
             .await
-            .context("Failed to call rerank api")
+            .context("调用 Rerank API 失败")
     }
 
     async fn chat_completions_inner(
@@ -137,7 +137,7 @@ pub trait Client: Sync + Send {
         _client: &ReqwestClient,
         _data: &EmbeddingsData,
     ) -> Result<EmbeddingsOutput> {
-        bail!("The client doesn't support embeddings api")
+        bail!("当前服务商不支持 Embeddings API")
     }
 
     async fn rerank_inner(
@@ -145,7 +145,7 @@ pub trait Client: Sync + Send {
         _client: &ReqwestClient,
         _data: &RerankData,
     ) -> Result<RerankOutput> {
-        bail!("The client doesn't support rerank api")
+        bail!("当前服务商不支持 Rerank API")
     }
 
     fn request_builder(
@@ -375,7 +375,7 @@ pub async fn create_openai_compatible_client_config(
         .unwrap_or("http(s)://{API_ADDR}/v1");
 
     let name = if client == OpenAICompatibleClient::NAME {
-        let value = prompt_input_string("Provider Name", true, None)?;
+        let value = prompt_input_string("服务商名称", true, None)?;
         value.replace(' ', "-")
     } else {
         client.to_string()
@@ -387,13 +387,13 @@ pub async fn create_openai_compatible_client_config(
     });
 
     let api_base = if api_base.contains('{') {
-        prompt_input_string("API Base", true, Some(&format!("e.g. {api_base}")))?
+        prompt_input_string("API 地址", true, Some(&format!("例如：{api_base}")))?
     } else {
         api_base.to_string()
     };
     config["api_base"] = api_base.into();
 
-    let api_key = prompt_input_string("API Key", false, None)?;
+    let api_key = prompt_input_string("API 密钥", false, None)?;
     if !api_key.is_empty() {
         config["api_key"] = api_key.into();
     }
@@ -412,7 +412,7 @@ pub async fn call_chat_completions(
 ) -> Result<(String, Vec<ToolResult>)> {
     let ret = abortable_run_with_spinner(
         client.chat_completions(input.clone()),
-        "Generating",
+        "正在生成",
         abort_signal,
     )
     .await;
@@ -452,7 +452,7 @@ pub async fn call_chat_completions_streaming(
     );
 
     if handler.abort().aborted() {
-        bail!("Aborted.");
+        bail!("已取消。");
     }
 
     render_ret?;
@@ -475,19 +475,19 @@ pub async fn call_chat_completions_streaming(
 }
 
 pub fn noop_prepare_embeddings<T>(_client: &T, _data: &EmbeddingsData) -> Result<RequestData> {
-    bail!("The client doesn't support embeddings api")
+    bail!("当前服务商不支持 Embeddings API")
 }
 
 pub async fn noop_embeddings(_builder: RequestBuilder, _model: &Model) -> Result<EmbeddingsOutput> {
-    bail!("The client doesn't support embeddings api")
+    bail!("当前服务商不支持 Embeddings API")
 }
 
 pub fn noop_prepare_rerank<T>(_client: &T, _data: &RerankData) -> Result<RequestData> {
-    bail!("The client doesn't support rerank api")
+    bail!("当前服务商不支持 Rerank API")
 }
 
 pub async fn noop_rerank(_builder: RequestBuilder, _model: &Model) -> Result<RerankOutput> {
-    bail!("The client doesn't support rerank api")
+    bail!("当前服务商不支持 Rerank API")
 }
 
 pub fn catch_error(data: &Value, status: u16) -> Result<()> {
@@ -529,7 +529,7 @@ pub fn catch_error(data: &Value, status: u16) -> Result<()> {
     } else if let Some(message) = data["message"].as_str() {
         bail!("{message}");
     }
-    bail!("Invalid response data: {data} (status: {status})");
+    bail!("响应数据无效：{data}（状态码：{status}）");
 }
 
 pub fn json_str_from_map<'a>(
@@ -566,17 +566,17 @@ async fn set_client_models_config(client_config: &mut Value, client: &str) -> Re
     ) {
         match abortable_run_with_spinner(
             fetch_models(api_base, api_key.as_deref()),
-            "Fetching models",
+            "正在获取模型列表",
             create_abort_signal(),
         )
         .await
         {
             Ok(fetched_models) => {
-                model_names = MultiSelect::new("LLMs to include (required):", fetched_models)
+                model_names = MultiSelect::new("要添加的模型（必填）：", fetched_models)
                     .with_validator(|list: &[ListOption<&String>]| {
                         if list.is_empty() {
                             Ok(Validation::Invalid(
-                                "At least one item must be selected".into(),
+                                "至少选择一个模型".into(),
                             ))
                         } else {
                             Ok(Validation::Valid)
@@ -585,15 +585,15 @@ async fn set_client_models_config(client_config: &mut Value, client: &str) -> Re
                     .prompt()?;
             }
             Err(err) => {
-                eprintln!("✗ Fetch models failed: {err}");
+                eprintln!("✗ 获取模型列表失败：{err}");
             }
         }
     }
     if model_names.is_empty() {
         model_names = prompt_input_string(
-            "LLMs to add",
+            "要添加的模型",
             true,
-            Some("Separated by commas, e.g. llama3.3,qwen2.5"),
+            Some("多个模型请用英文逗号分隔，例如：llama3.3,qwen2.5"),
         )?
         .split(',')
         .filter_map(|v| {
@@ -607,7 +607,7 @@ async fn set_client_models_config(client_config: &mut Value, client: &str) -> Re
         .collect::<Vec<_>>();
     }
     if model_names.is_empty() {
-        bail!("No models");
+        bail!("未配置任何模型");
     }
     let models: Vec<Value> = model_names
         .iter()
@@ -644,12 +644,12 @@ async fn set_client_models_config(client_config: &mut Value, client: &str) -> Re
 
 fn select_model(model_names: Vec<String>) -> Result<String> {
     if model_names.is_empty() {
-        bail!("No models");
+        bail!("未配置任何模型");
     }
     let model = if model_names.len() == 1 {
         model_names[0].clone()
     } else {
-        Select::new("Default Model (required):", model_names).prompt()?
+        Select::new("默认模型（必填）：", model_names).prompt()?
     };
     Ok(model)
 }
@@ -666,7 +666,7 @@ fn prompt_input_string(
     };
     let mut text = Text::new(&desc);
     if required {
-        text = text.with_validator(required!("This field is required"))
+        text = text.with_validator(required!("此项为必填项"))
     }
     if let Some(help_message) = help_message {
         text = text.with_help_message(help_message);

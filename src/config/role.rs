@@ -143,14 +143,14 @@ impl Role {
         let content = self.export();
         std::fs::write(role_path, content).with_context(|| {
             format!(
-                "Failed to write role {} to {}",
+                "将角色 {} 写入 {} 失败",
                 self.name,
                 role_path.display()
             )
         })?;
 
         if is_repl {
-            println!("✓ Saved role to '{}'.", role_path.display());
+            println!("✓ 角色已保存至 '{}'。", role_path.display());
         }
 
         if role_name != self.name {

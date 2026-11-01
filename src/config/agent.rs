@@ -79,7 +79,7 @@ impl Agent {
         } else if !definition.documents.is_empty() && !config.read().info_flag {
             let mut ans = false;
             if *IS_STDOUT_TERMINAL {
-                ans = Confirm::new("The agent has the documents, init RAG?")
+                ans = Confirm::new("该智能体包含文档，是否初始化 RAG 知识库？")
                     .with_default(true)
                     .prompt()?;
             }
@@ -90,7 +90,7 @@ impl Agent {
                         document_paths.push(path.to_string());
                     } else {
                         let new_path = safe_join_path(&functions_dir, path)
-                            .ok_or_else(|| anyhow!("Invalid document path: '{path}'"))?;
+                            .ok_or_else(|| anyhow!("无效的文档路径：'{path}'"))?;
                         document_paths.push(new_path.display().to_string())
                     }
                 }
@@ -145,7 +145,7 @@ impl Agent {
                     }
                     if *IS_STDOUT_TERMINAL {
                         if !printed {
-                            println!("⚙ Init agent variables...");
+                            println!("⚙ 正在初始化智能体变量...");
                             printed = true;
                         }
                         let value = Text::new(&format!(
@@ -154,7 +154,7 @@ impl Agent {
                         ))
                         .with_validator(|input: &str| {
                             if input.trim().is_empty() {
-                                Ok(Validation::Invalid("This field is required".into()))
+                                Ok(Validation::Invalid("此项为必填项".into()))
                             } else {
                                 Ok(Validation::Valid)
                             }
@@ -169,7 +169,7 @@ impl Agent {
         }
         if !unset_variables.is_empty() {
             bail!(
-                "The following agent variables are required:\n{}",
+                "以下智能体变量为必填项：\n{}",
                 unset_variables
                     .iter()
                     .map(|v| format!("  - {}: {}", v.name, v.description))
@@ -319,7 +319,7 @@ impl Agent {
         )?;
         match value {
             Some(v) => Ok(v),
-            _ => bail!("No return value from '_instructions' function"),
+            _ => bail!("'_instructions' 函数未返回任何值"),
         }
     }
 }

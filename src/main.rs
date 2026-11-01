@@ -185,7 +185,7 @@ async fn run(config: GlobalConfig, cli: Cli, text: Option<String>) -> Result<()>
         }
         true => {
             if !*IS_STDOUT_TERMINAL {
-                bail!("No TTY for REPL")
+                bail!("交互模式需要可用的终端（TTY）")
             }
             start_interactive(&config).await
         }
@@ -253,7 +253,7 @@ async fn shell_execute(
         .write()
         .after_chat_completion(&input, &eval_str, &[])?;
     if eval_str.is_empty() {
-        bail!("No command generated");
+        bail!("未生成命令");
     }
     if config.read().dry_run {
         config.read().print_markdown(&eval_str)?;
@@ -283,7 +283,7 @@ async fn shell_execute(
                     process::exit(code);
                 }
                 'r' => {
-                    let revision = Text::new("Enter your revision:").prompt()?;
+                    let revision = Text::new("请输入修改意见：").prompt()?;
                     let text = format!("{}\n{revision}", input.text());
                     input.set_text(text);
                     return shell_execute(config, shell, input, abort_signal.clone()).await;
@@ -313,7 +313,7 @@ async fn shell_execute(
                 }
                 'c' => {
                     set_text(&eval_str)?;
-                    println!("{}", dimmed_text("✓ Copied the command."));
+                    println!("{}", dimmed_text("✓ 已复制命令。"));
                 }
                 _ => {}
             }
@@ -344,7 +344,7 @@ async fn create_input(
         .await?
     };
     if input.is_empty() {
-        bail!("No input");
+        bail!("没有输入内容");
     }
     Ok(input)
 }

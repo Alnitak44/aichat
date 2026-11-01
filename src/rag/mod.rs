@@ -64,9 +64,9 @@ impl Rag {
         abort_signal: AbortSignal,
     ) -> Result<Self> {
         if !*IS_STDOUT_TERMINAL {
-            bail!("Failed to init rag in non-interactive mode");
+            bail!("非交互模式下无法初始化 RAG 知识库");
         }
-        println!("⚙ Initializing RAG...");
+        println!("⚙ 正在初始化 RAG 知识库...");
         let (embedding_model, chunk_size, chunk_overlap) = Self::create_config(config)?;
         let (reranker_model, top_k) = {
             let config = config.read();
@@ -94,7 +94,7 @@ impl Rag {
         )
         .await?;
         if rag.save()? {
-            println!("✓ Saved RAG to '{}'.", save_path.display());
+            println!("✓ RAG 知识库已保存至 '{}'。", save_path.display());
         }
         Ok(rag)
     }
@@ -144,7 +144,7 @@ impl Rag {
         )
         .await?;
         if self.save()? {
-            println!("✓ Saved rag to '{}'.", self.path);
+            println!("✓ RAG 知识库已保存至 '{}'。", self.path);
         }
         Ok(())
     }
@@ -160,13 +160,13 @@ impl Rag {
         };
         let embedding_model_id = match embedding_model_id {
             Some(value) => {
-                println!("Select embedding model: {value}");
+                println!("已选择嵌入模型：{value}");
                 value
             }
             None => {
                 let models = list_models(&config.read(), ModelType::Embedding);
                 if models.is_empty() {
-                    bail!("No available embedding model");
+                    bail!("没有可用的嵌入模型");
                 }
                 select_embedding_model(&models)?
             }
@@ -176,14 +176,14 @@ impl Rag {
 
         let chunk_size = match chunk_size {
             Some(value) => {
-                println!("Set chunk size: {value}");
+                println!("分块大小：{value}");
                 value
             }
             None => set_chunk_size(&embedding_model)?,
         };
         let chunk_overlap = match chunk_overlap {
             Some(value) => {
-                println!("Set chunk overlay: {value}");
+                println!("分块重叠长度：{value}");
                 value
             }
             None => {
@@ -416,13 +416,13 @@ impl Rag {
         if has_error {
             let mut aborted = true;
             if *IS_STDOUT_TERMINAL && total > 0 {
-                let ans = Confirm::new("Some documents failed to load. Continue?")
+                let ans = Confirm::new("部分文档加载失败，是否继续？")
                     .with_default(false)
                     .prompt()?;
                 aborted = !ans;
             }
             if aborted {
-                bail!("Aborted");
+                bail!("已取消");
             }
         }
 
@@ -496,7 +496,7 @@ impl Rag {
         self.data.document_paths = document_paths.into_iter().collect();
 
         if self.data.files.is_empty() {
-            bail!("No RAG files");
+            bail!("未找到 RAG 文件");
         }
 
         progress(&spinner, "Building store".into());
@@ -859,7 +859,7 @@ fn select_embedding_model(models: &[&Model]) -> Result<String> {
         .iter()
         .map(|v| SelectOption::new(v.id(), v.description()))
         .collect();
-    let result = Select::new("Select embedding model:", models).prompt()?;
+    let result = Select::new("选择嵌入模型：", models).prompt()?;
     Ok(result.value)
 }
 
@@ -887,7 +887,7 @@ fn set_chunk_size(model: &Model) -> Result<usize> {
         .max_tokens_per_chunk()
         .map(|v| format!("The model's max_tokens is {v}"));
 
-    let mut text = Text::new("Set chunk size:")
+    let mut text = Text::new("设置分块大小：")
         .with_default(&default_value)
         .with_validator(move |text: &str| {
             let out = match text.parse::<usize>() {
@@ -900,11 +900,11 @@ fn set_chunk_size(model: &Model) -> Result<usize> {
         text = text.with_help_message(help_message);
     }
     let value = text.prompt()?;
-    value.parse().map_err(|_| anyhow!("Invalid chunk_size"))
+    value.parse().map_err(|_| anyhow!("chunk_size 参数无效"))
 }
 
 fn set_chunk_overlay(default_value: usize) -> Result<usize> {
-    let value = Text::new("Set chunk overlay:")
+    let value = Text::new("设置分块重叠长度：")
         .with_default(&default_value.to_string())
         .with_validator(move |text: &str| {
             let out = match text.parse::<usize>() {
@@ -914,13 +914,13 @@ fn set_chunk_overlay(default_value: usize) -> Result<usize> {
             Ok(out)
         })
         .prompt()?;
-    value.parse().map_err(|_| anyhow!("Invalid chunk_overlay"))
+    value.parse().map_err(|_| anyhow!("chunk_overlay 参数无效"))
 }
 
 fn add_documents() -> Result<Vec<String>> {
-    let text = Text::new("Add documents:")
+    let text = Text::new("添加文档：")
         .with_validator(required!("This field is required"))
-        .with_help_message("e.g. file;dir/;dir/**/*.{md,mdx};loader:resource;url;website/**")
+        .with_help_message("例如：file;dir/;dir/**/*.{md,mdx};loader:resource;url;website/**")
         .prompt()?;
     let paths = text
         .split(';')

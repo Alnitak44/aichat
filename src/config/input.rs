@@ -89,7 +89,7 @@ impl Input {
                 }
             }
             if last_reply.is_none() && documents.is_empty() && medias.is_empty() {
-                bail!("No last reply found");
+                bail!("没有找到上一条回复");
             }
         }
         let documents_len = documents.len();
@@ -130,7 +130,7 @@ impl Input {
     ) -> Result<Self> {
         abortable_run_with_spinner(
             Input::from_files(config, raw_text, paths, role),
-            "Loading files",
+            "正在加载文件",
             abort_signal,
         )
         .await
@@ -413,7 +413,7 @@ fn resolve_paths(
             raw_paths.insert(path);
         } else if is_url(&path) {
             if path.strip_suffix("**").is_some() {
-                bail!("Invalid website '{path}'");
+                bail!("无效的网站地址：'{path}'");
             }
             remote_urls.insert(path.clone());
             raw_paths.insert(path);
@@ -423,7 +423,7 @@ fn resolve_paths(
         } else {
             let resolved_path = resolve_home_dir(&path);
             let absolute_path = to_absolute_path(&resolved_path)
-                .with_context(|| format!("Invalid path '{path}'"))?;
+                .with_context(|| format!("无效的路径：'{path}'"))?;
             local_paths.insert(resolved_path);
             raw_paths.insert(absolute_path);
         }
@@ -466,13 +466,13 @@ async fn load_documents(
     for file_path in local_files {
         if is_image(&file_path) {
             let contents = read_media_to_data_url(&file_path)
-                .with_context(|| format!("Unable to read media '{file_path}'"))?;
+                .with_context(|| format!("无法读取媒体文件 '{file_path}'"))?;
             data_urls.insert(sha256(&contents), file_path);
             medias.push(contents)
         } else {
             let document = load_file(loaders, &file_path)
                 .await
-                .with_context(|| format!("Unable to read file '{file_path}'"))?;
+                .with_context(|| format!("无法读取文件 '{file_path}'"))?;
             files.push(("FILE", file_path, document.contents));
         }
     }
@@ -480,7 +480,7 @@ async fn load_documents(
     for file_url in remote_urls {
         let (contents, extension) = fetch_with_loaders(loaders, &file_url, true)
             .await
-            .with_context(|| format!("Failed to load url '{file_url}'"))?;
+            .with_context(|| format!("加载 URL '{file_url}' 失败"))?;
         if extension == MEDIA_URL_EXTENSION {
             data_urls.insert(sha256(&contents), file_url);
             medias.push(contents)
@@ -491,7 +491,7 @@ async fn load_documents(
 
     for protocol_path in protocol_paths {
         let documents = load_protocol_path(loaders, &protocol_path)
-            .with_context(|| format!("Failed to load from '{protocol_path}'"))?;
+            .with_context(|| format!("从 '{protocol_path}' 加载内容失败"))?;
         files.extend(
             documents
                 .into_iter()
@@ -527,7 +527,7 @@ fn read_media_to_data_url(image_path: &str) -> Result<String> {
         "jpg" | "jpeg" => "image/jpeg",
         "webp" => "image/webp",
         "gif" => "image/gif",
-        _ => bail!("Unexpected media type"),
+        _ => bail!("不支持的媒体类型"),
     };
     let mut file = File::open(image_path)?;
     let mut buffer = Vec::new();

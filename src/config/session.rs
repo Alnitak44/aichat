@@ -79,9 +79,9 @@ impl Session {
 
     pub fn load(config: &Config, name: &str, path: &Path) -> Result<Self> {
         let content = read_to_string(path)
-            .with_context(|| format!("Failed to load session {} at {}", name, path.display()))?;
+            .with_context(|| format!("加载会话 {} 失败（路径：{}）", name, path.display()))?;
         let mut session: Self =
-            serde_yaml::from_str(&content).with_context(|| format!("Invalid session {name}"))?;
+            serde_yaml::from_str(&content).with_context(|| format!("会话 {name} 无效"))?;
 
         session.model = Model::retrieve_model(config, &session.model_id, ModelType::Chat)?;
 
@@ -171,7 +171,7 @@ impl Session {
         data["messages"] = json!(self.messages);
 
         let output = serde_yaml::to_string(&data)
-            .with_context(|| format!("Unable to show info about session '{}'", &self.name))?;
+            .with_context(|| format!("无法显示会话 '{}' 的信息", &self.name))?;
         Ok(output)
     }
 
@@ -395,18 +395,18 @@ impl Session {
                 if !is_repl {
                     return Ok(());
                 }
-                let ans = Confirm::new("Save session?").with_default(false).prompt()?;
+                let ans = Confirm::new("是否保存会话？").with_default(false).prompt()?;
                 if !ans {
                     return Ok(());
                 }
                 if session_name == TEMP_SESSION_NAME {
-                    session_name = Text::new("Session name:")
+                    session_name = Text::new("会话名称：")
                         .with_validator(|input: &str| {
                             let input = input.trim();
                             if input.is_empty() {
-                                Ok(Validation::Invalid("This name is required".into()))
+                                Ok(Validation::Invalid("此名称为必填项".into()))
                             } else if input == TEMP_SESSION_NAME {
-                                Ok(Validation::Invalid("This name is reserved".into()))
+                                Ok(Validation::Invalid("此名称为保留名称".into()))
                             } else {
                                 Ok(Validation::Valid)
                             }
@@ -416,7 +416,7 @@ impl Session {
             } else if save_session == Some(true) && session_name == TEMP_SESSION_NAME {
                 session_dir = session_dir.join("_");
                 ensure_parent_exists(&session_dir).with_context(|| {
-                    format!("Failed to create directory '{}'", session_dir.display())
+                    format!("创建目录 '{}' 失败", session_dir.display())
                 })?;
 
                 let now = chrono::Local::now();
@@ -437,17 +437,17 @@ impl Session {
         self.path = Some(session_path.display().to_string());
 
         let content = serde_yaml::to_string(&self)
-            .with_context(|| format!("Failed to serde session '{}'", self.name))?;
+            .with_context(|| format!("序列化会话 '{}' 失败", self.name))?;
         write(session_path, content).with_context(|| {
             format!(
-                "Failed to write session '{}' to '{}'",
+                "将会话 '{}' 写入 '{}' 失败",
                 self.name,
                 session_path.display()
             )
         })?;
 
         if is_repl {
-            println!("✓ Saved the session to '{}'.", session_path.display());
+            println!("✓ 会话已保存至 '{}'。", session_path.display());
         }
 
         if self.name() != session_name {
@@ -461,7 +461,7 @@ impl Session {
 
     pub fn guard_empty(&self) -> Result<()> {
         if !self.is_empty() {
-            bail!("Cannot perform this operation because the session has messages, please `.empty session` first.");
+            bail!("会话中仍有消息，无法执行此操作。请先运行 `.empty session` 清空会话。");
         }
         Ok(())
     }

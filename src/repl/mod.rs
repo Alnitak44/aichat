@@ -33,37 +33,37 @@ const MENU_NAME: &str = "completion_menu";
 
 static REPL_COMMANDS: LazyLock<[ReplCommand; 36]> = LazyLock::new(|| {
     [
-        ReplCommand::new(".help", "Show this help guide", AssertState::pass()),
-        ReplCommand::new(".info", "Show system info", AssertState::pass()),
+        ReplCommand::new(".help", "显示帮助", AssertState::pass()),
+        ReplCommand::new(".info", "显示系统信息", AssertState::pass()),
         ReplCommand::new(
             ".edit config",
-            "Modify configuration file",
+            "编辑配置文件",
             AssertState::False(StateFlags::AGENT),
         ),
-        ReplCommand::new(".model", "Switch LLM model", AssertState::pass()),
+        ReplCommand::new(".model", "切换语言模型", AssertState::pass()),
         ReplCommand::new(
             ".prompt",
-            "Set a temporary role using a prompt",
+            "使用提示词临时设置角色",
             AssertState::False(StateFlags::SESSION | StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".role",
-            "Create or switch to a role",
+            "创建或切换角色",
             AssertState::False(StateFlags::SESSION | StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".info role",
-            "Show role info",
+            "显示角色信息",
             AssertState::True(StateFlags::ROLE),
         ),
         ReplCommand::new(
             ".edit role",
-            "Modify current role",
+            "编辑当前角色",
             AssertState::TrueFalse(StateFlags::ROLE, StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".save role",
-            "Save current role to file",
+            "将当前角色保存到文件",
             AssertState::TrueFalse(
                 StateFlags::ROLE,
                 StateFlags::SESSION_EMPTY | StateFlags::SESSION,
@@ -71,119 +71,119 @@ static REPL_COMMANDS: LazyLock<[ReplCommand; 36]> = LazyLock::new(|| {
         ),
         ReplCommand::new(
             ".exit role",
-            "Exit active role",
+            "退出当前角色",
             AssertState::TrueFalse(StateFlags::ROLE, StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".session",
-            "Start or switch to a session",
+            "创建或切换会话",
             AssertState::False(StateFlags::SESSION_EMPTY | StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".empty session",
-            "Clear session messages",
+            "清空会话消息",
             AssertState::True(StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".compress session",
-            "Compress session messages",
+            "压缩会话消息",
             AssertState::True(StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".info session",
-            "Show session info",
+            "显示会话信息",
             AssertState::True(StateFlags::SESSION_EMPTY | StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".edit session",
-            "Modify current session",
+            "编辑当前会话",
             AssertState::True(StateFlags::SESSION_EMPTY | StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".save session",
-            "Save current session to file",
+            "将当前会话保存到文件",
             AssertState::True(StateFlags::SESSION_EMPTY | StateFlags::SESSION),
         ),
         ReplCommand::new(
             ".exit session",
-            "Exit active session",
+            "退出当前会话",
             AssertState::True(StateFlags::SESSION_EMPTY | StateFlags::SESSION),
         ),
-        ReplCommand::new(".agent", "Use an agent", AssertState::bare()),
+        ReplCommand::new(".agent", "使用智能体", AssertState::bare()),
         ReplCommand::new(
             ".starter",
-            "Use a conversation starter",
+            "使用对话开场白",
             AssertState::True(StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".edit agent-config",
-            "Modify agent configuration file",
+            "编辑智能体配置文件",
             AssertState::True(StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".info agent",
-            "Show agent info",
+            "显示智能体信息",
             AssertState::True(StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".exit agent",
-            "Leave agent",
+            "退出智能体",
             AssertState::True(StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".rag",
-            "Initialize or access RAG",
+            "初始化或访问 RAG 知识库",
             AssertState::False(StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".edit rag-docs",
-            "Add or remove documents from an existing RAG",
+            "向现有 RAG 知识库添加或移除文档",
             AssertState::TrueFalse(StateFlags::RAG, StateFlags::AGENT),
         ),
         ReplCommand::new(
             ".rebuild rag",
-            "Rebuild RAG for document changes",
+            "根据文档变更重建 RAG 知识库",
             AssertState::True(StateFlags::RAG),
         ),
         ReplCommand::new(
             ".sources rag",
-            "Show citation sources used in last query",
+            "显示上次回答引用的来源",
             AssertState::True(StateFlags::RAG),
         ),
         ReplCommand::new(
             ".info rag",
-            "Show RAG info",
+            "显示 RAG 知识库信息",
             AssertState::True(StateFlags::RAG),
         ),
         ReplCommand::new(
             ".exit rag",
-            "Leave RAG",
+            "退出 RAG 知识库",
             AssertState::TrueFalse(StateFlags::RAG, StateFlags::AGENT),
         ),
-        ReplCommand::new(".macro", "Execute a macro", AssertState::pass()),
+        ReplCommand::new(".macro", "执行宏", AssertState::pass()),
         ReplCommand::new(
             ".file",
-            "Include files, directories, URLs or commands",
+            "附加文件、目录、URL 或命令输出",
             AssertState::pass(),
         ),
         ReplCommand::new(
             ".continue",
-            "Continue previous response",
+            "继续上一次回答",
             AssertState::pass(),
         ),
         ReplCommand::new(
             ".regenerate",
-            "Regenerate last response",
+            "重新生成上一次回答",
             AssertState::pass(),
         ),
-        ReplCommand::new(".copy", "Copy last response", AssertState::pass()),
-        ReplCommand::new(".set", "Modify runtime settings", AssertState::pass()),
+        ReplCommand::new(".copy", "复制上一次回答", AssertState::pass()),
+        ReplCommand::new(".set", "修改运行时设置", AssertState::pass()),
         ReplCommand::new(
             ".delete",
-            "Delete roles, sessions, RAGs, or agents",
+            "删除角色、会话、RAG 知识库或智能体",
             AssertState::pass(),
         ),
-        ReplCommand::new(".exit", "Exit REPL", AssertState::pass()),
+        ReplCommand::new(".exit", "退出交互模式", AssertState::pass()),
     ]
 });
 static COMMAND_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*(\.\S*)\s*").unwrap());
@@ -218,7 +218,7 @@ impl Repl {
         {
             print!(
                 r#"Welcome to {} {}
-Type ".help" for additional help.
+输入 ".help" 查看帮助。
 "#,
                 env!("CARGO_CRATE_NAME"),
                 env!("CARGO_PKG_VERSION"),
@@ -413,13 +413,13 @@ pub async fn run_repl_command(
                 Some(name) => {
                     config.write().set_model(name)?;
                 }
-                None => println!("Usage: .model <name>"),
+                None => println!("用法：.model <name>"),
             },
             ".prompt" => match args {
                 Some(text) => {
                     config.write().use_prompt(text)?;
                 }
-                None => println!("Usage: .prompt <text>..."),
+                None => println!("用法：.prompt <text>..."),
             },
             ".role" => match args {
                 Some(args) => match args.split_once(['\n', ' ']) {
@@ -437,9 +437,9 @@ pub async fn run_repl_command(
                     }
                 },
                 None => println!(
-                    r#"Usage:
-    .role <name>                    # If the role exists, switch to it; otherwise, create a new role
-    .role <name> [text]...          # Temporarily switch to the role, send the text, and switch back"#
+                    r#"用法：
+    .role <name>                    # 若角色已存在则切换到该角色，否则创建新角色
+    .role <name> [text]...          # 临时切换到该角色，发送文本后再切回"#
                 ),
             },
             ".session" => {
@@ -463,7 +463,7 @@ pub async fn run_repl_command(
                         .map(|(key, value)| (key.to_string(), value.to_string()))
                         .collect();
                     if variables.len() != variable_pairs.len() {
-                        bail!("Some variable values are not key=value pairs");
+                        bail!("部分变量未按 key=value 格式提供");
                     }
                     if !variables.is_empty() {
                         config.write().agent_variables = Some(variables);
@@ -475,7 +475,7 @@ pub async fn run_repl_command(
                     ret?;
                 }
                 None => {
-                    println!(r#"Usage: .agent <agent-name> [session-name] [key=value]..."#)
+                    println!(r#"用法：.agent <agent-name> [session-name] [key=value]..."#)
                 }
             },
             ".starter" => match args {
@@ -495,7 +495,7 @@ pub async fn run_repl_command(
                             ask(config, abort_signal.clone(), input, true).await?;
                         }
                         None => {
-                            bail!("Invalid starter value");
+                            bail!("无效的对话开场白编号");
                         }
                     }
                 }
@@ -512,12 +512,12 @@ pub async fn run_repl_command(
                     config.write().save_session(name)?;
                 }
                 _ => {
-                    println!(r#"Usage: .save <role|session> [name]"#)
+                    println!(r#"用法：.save <role|session> [name]"#)
                 }
             },
             ".edit" => {
                 if config.read().macro_flag {
-                    bail!("Cannot perform this operation because you are in a macro")
+                    bail!("宏执行期间无法执行此操作")
                 }
                 match args {
                     Some("config") => {
@@ -536,7 +536,7 @@ pub async fn run_repl_command(
                         config.write().edit_agent_config()?;
                     }
                     _ => {
-                        println!(r#"Usage: .edit <config|role|session|rag-docs|agent-config>"#)
+                        println!(r#"用法：.edit <config|role|session|rag-docs|agent-config>"#)
                     }
                 }
             }
@@ -548,10 +548,10 @@ pub async fn run_repl_command(
                         abort_signal.clone(),
                     )
                     .await?;
-                    println!("✓ Successfully compressed the session.");
+                    println!("✓ 会话已成功压缩。");
                 }
                 _ => {
-                    println!(r#"Usage: .compress session"#)
+                    println!(r#"用法：.compress session"#)
                 }
             },
             ".empty" => match args {
@@ -559,7 +559,7 @@ pub async fn run_repl_command(
                     config.write().empty_session()?;
                 }
                 _ => {
-                    println!(r#"Usage: .empty session"#)
+                    println!(r#"用法：.empty session"#)
                 }
             },
             ".rebuild" => match args {
@@ -567,7 +567,7 @@ pub async fn run_repl_command(
                     Config::rebuild_rag(config, abort_signal.clone()).await?;
                 }
                 _ => {
-                    println!(r#"Usage: .rebuild rag"#)
+                    println!(r#"用法：.rebuild rag"#)
                 }
             },
             ".sources" => match args {
@@ -576,7 +576,7 @@ pub async fn run_repl_command(
                     println!("{output}");
                 }
                 _ => {
-                    println!(r#"Usage: .sources rag"#)
+                    println!(r#"用法：.sources rag"#)
                 }
             },
             ".macro" => match split_first_arg(args) {
@@ -587,7 +587,7 @@ pub async fn run_repl_command(
                         macro_execute(config, name, extra, abort_signal.clone()).await?;
                     }
                 }
-                None => println!("Usage: .macro <name> <text>..."),
+                None => println!("用法：.macro <name> <text>..."),
             },
             ".file" => match args {
                 Some(args) => {
@@ -603,7 +603,7 @@ pub async fn run_repl_command(
                     ask(config, abort_signal.clone(), input, true).await?;
                 }
                 None => println!(
-                    r#"Usage: .file <file|dir|url|cmd|loader:resource|%%>... [-- <text>...]
+                    r#"用法：.file <file|dir|url|cmd|loader:resource|%%>... [-- <text>...]
 
 .file /tmp/file.txt
 .file src/ Cargo.toml -- analyze
@@ -611,7 +611,7 @@ pub async fn run_repl_command(
 .file https://example.com/image.png -- recognize text
 .file `git diff` -- Generate git commit message
 .file jina:https://example.com
-.file %% -- translate last reply to english"#
+.file %% -- 将上一条回复翻译成中文"#
                 ),
             },
             ".continue" => {
@@ -625,7 +625,7 @@ pub async fn run_repl_command(
                     .cloned()
                 {
                     Some(v) => v,
-                    None => bail!("Unable to continue the response"),
+                    None => bail!("没有可继续的上一条回答"),
                 };
                 input.set_continue_output(&output);
                 ask(config, abort_signal.clone(), input, true).await?;
@@ -639,7 +639,7 @@ pub async fn run_repl_command(
                     .cloned()
                 {
                     Some(v) => v,
-                    None => bail!("Unable to regenerate the response"),
+                    None => bail!("没有可重新生成的上一条回答"),
                 };
                 input.set_regenerate();
                 ask(config, abort_signal.clone(), input, true).await?;
@@ -649,7 +649,7 @@ pub async fn run_repl_command(
                     Config::update(config, args)?;
                 }
                 _ => {
-                    println!("Usage: .set <key> <value>...")
+                    println!("用法：.set <key> <value>...")
                 }
             },
             ".delete" => match args {
@@ -657,7 +657,7 @@ pub async fn run_repl_command(
                     Config::delete(config, args)?;
                 }
                 _ => {
-                    println!("Usage: .delete <role|session|rag|macro|agent-data>")
+                    println!("用法：.delete <role|session|rag|macro|agent-data>")
                 }
             },
             ".copy" => {
@@ -669,7 +669,7 @@ pub async fn run_repl_command(
                     .map(|v| v.output.clone())
                 {
                     Some(v) => v,
-                    None => bail!("No chat response to copy"),
+                    None => bail!("没有可复制的聊天回复"),
                 };
                 set_text(&output).context("Failed to copy the last chat response")?;
             }
@@ -697,7 +697,7 @@ pub async fn run_repl_command(
             },
             ".clear" => match args {
                 Some("messages") => {
-                    bail!("Use '.empty session' instead");
+                    bail!("请改用 '.empty session'");
                 }
                 _ => unknown_command()?,
             },
@@ -759,7 +759,7 @@ async fn ask(
 }
 
 fn unknown_command() -> Result<()> {
-    bail!(r#"Unknown command. Type ".help" for additional help."#);
+    bail!(r#"Unknown command. 输入 ".help" 查看帮助。"#);
 }
 
 fn dump_repl_help() {
@@ -771,9 +771,9 @@ fn dump_repl_help() {
     println!(
         r###"{head}
 
-Type ::: to start multi-line editing, type ::: to finish it.
-Press Ctrl+O to open an editor for editing the input buffer.
-Press Ctrl+C to cancel the response, Ctrl+D to exit the REPL."###,
+输入 ::: 开始多行编辑，再次输入 ::: 结束编辑。
+按 Ctrl+O 可调用外部编辑器编辑输入内容。
+按 Ctrl+C 取消当前回答，按 Ctrl+D 退出交互模式。"###,
     );
 }
 

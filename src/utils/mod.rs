@@ -126,11 +126,11 @@ where
 
 pub fn pretty_error(err: &anyhow::Error) -> String {
     let mut output = vec![];
-    output.push(format!("Error: {err}"));
+    output.push(format!("错误：{err}"));
     let causes: Vec<_> = err.chain().skip(1).collect();
     let causes_len = causes.len();
     if causes_len > 0 {
-        output.push("\nCaused by:".to_string());
+        output.push("\n原因：".to_string());
         if causes_len == 1 {
             output.push(format!("    {}", indent_text(causes[0], 4).trim()));
         } else {
@@ -211,7 +211,7 @@ pub fn set_proxy(
     builder = builder.no_proxy();
     if !proxy.is_empty() && proxy != "-" {
         builder = builder
-            .proxy(reqwest::Proxy::all(proxy).with_context(|| format!("Invalid proxy `{proxy}`"))?);
+            .proxy(reqwest::Proxy::all(proxy).with_context(|| format!("代理地址无效：`{proxy}`"))?);
     };
     Ok(builder)
 }

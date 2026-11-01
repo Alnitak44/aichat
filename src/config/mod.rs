@@ -629,7 +629,7 @@ impl Config {
     pub fn update(config: &GlobalConfig, data: &str) -> Result<()> {
         let parts: Vec<&str> = data.split_whitespace().collect();
         if parts.len() != 2 {
-            bail!("Usage: .set <key> <value>. If value is null, unset key.");
+            bail!("用法：.set <key> <value>。若 value 为 null，则取消该配置项。");
         }
         let key = parts[0];
         let value = parts[1];
@@ -663,33 +663,33 @@ impl Config {
                 Self::set_rag_reranker_model(config, value)?;
             }
             "rag_top_k" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 Self::set_rag_top_k(config, value)?;
             }
             "dry_run" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 config.write().dry_run = value;
             }
             "function_calling" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 if value && config.write().functions.is_empty() {
-                    bail!("Function calling cannot be enabled because no functions are installed.")
+                    bail!("尚未安装任何函数，无法启用 Function Calling。")
                 }
                 config.write().function_calling = value;
             }
             "stream" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 config.write().stream = value;
             }
             "save" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 config.write().save = value;
             }
             "highlight" => {
-                let value = value.parse().with_context(|| "Invalid value")?;
+                let value = value.parse().with_context(|| "无效的值")?;
                 config.write().highlight = value;
             }
-            _ => bail!("Unknown key '{key}'"),
+            _ => bail!("未知配置键 '{key}'"),
         }
         Ok(())
     }
@@ -701,7 +701,7 @@ impl Config {
             "rag" => (Self::rags_dir(), Some(".yaml")),
             "macro" => (Self::macros_dir(), Some(".yaml")),
             "agent-data" => (Self::agents_data_dir(), None),
-            _ => bail!("Unknown kind '{kind}'"),
+            _ => bail!("未知类型 '{kind}'"),
         };
         let names = match read_dir(&dir) {
             Ok(rd) => {
@@ -728,14 +728,14 @@ impl Config {
         };
 
         if names.is_empty() {
-            bail!("No {kind} to delete")
+            bail!("没有可删除的 {kind}")
         }
 
-        let select_names = MultiSelect::new(&format!("Select {kind} to delete:"), names)
+        let select_names = MultiSelect::new(&format!("选择要删除的 {kind}："), names)
             .with_validator(|list: &[ListOption<&String>]| {
                 if list.is_empty() {
                     Ok(Validation::Invalid(
-                        "At least one item must be selected".into(),
+                        "至少选择一项".into(),
                     ))
                 } else {
                     Ok(Validation::Valid)
@@ -759,7 +759,7 @@ impl Config {
                 }
             }
         }
-        println!("✓ Successfully deleted {kind}.");
+        println!("✓ 已成功删除 {kind}。");
         Ok(())
     }
 
@@ -900,7 +900,7 @@ impl Config {
         } else if let Some(role) = &self.role {
             Ok(role.export())
         } else {
-            bail!("No role")
+            bail!("当前没有活动角色")
         }
     }
 
@@ -948,15 +948,15 @@ impl Config {
 
     pub fn new_role(&mut self, name: &str) -> Result<()> {
         if self.macro_flag {
-            bail!("No role");
+            bail!("当前没有活动角色");
         }
-        let ans = Confirm::new("Create a new role?")
+        let ans = Confirm::new("是否创建新角色？")
             .with_default(true)
             .prompt()?;
         if ans {
             self.upsert_role(name)?;
         } else {
-            bail!("No role");
+            bail!("当前没有活动角色");
         }
         Ok(())
     }
@@ -968,15 +968,15 @@ impl Config {
                 if session.is_empty() {
                     role_name = Some(name);
                 } else {
-                    bail!("Cannot perform this operation because you are in a non-empty session")
+                    bail!("当前会话不为空，无法执行此操作")
                 }
             } else {
-                bail!("No role")
+                bail!("当前没有活动角色")
             }
         } else {
             role_name = self.role.as_ref().map(|v| v.name().to_string());
         }
-        let name = role_name.ok_or_else(|| anyhow!("No role"))?;
+        let name = role_name.ok_or_else(|| anyhow!("当前没有活动角色"))?;
         self.upsert_role(&name)?;
         self.use_role(&name)
     }
@@ -1003,16 +1003,16 @@ impl Config {
                     None => role.name().to_string(),
                 }
             }
-            None => bail!("No role"),
+            None => bail!("当前没有活动角色"),
         };
         if role_name == TEMP_ROLE_NAME {
-            role_name = Text::new("Role name:")
+            role_name = Text::new("角色名称：")
                 .with_validator(|input: &str| {
                     let input = input.trim();
                     if input.is_empty() {
-                        Ok(Validation::Invalid("This name is required".into()))
+                        Ok(Validation::Invalid("此名称为必填项".into()))
                     } else if input == TEMP_ROLE_NAME {
-                        Ok(Validation::Invalid("This name is reserved".into()))
+                        Ok(Validation::Invalid("此名称为保留名称".into()))
                     } else {
                         Ok(Validation::Valid)
                     }
@@ -1073,7 +1073,7 @@ impl Config {
     pub fn use_session(&mut self, session_name: Option<&str>) -> Result<()> {
         if self.session.is_some() {
             bail!(
-                "Already in a session, please run '.exit session' first to exit the current session."
+                "当前已处于会话中，请先运行 '.exit session' 退出当前会话。"
             );
         }
         let mut session;
@@ -1110,7 +1110,7 @@ impl Config {
                         && self.agent.is_some() == input.with_agent()
                     {
                         let ans = Confirm::new(
-                            "Start a session that incorporates the last question and answer?",
+                            "是否创建一个包含上一轮问题和回答的新会话？",
                         )
                         .with_default(false)
                         .prompt()?;
@@ -1141,7 +1141,7 @@ impl Config {
             });
             session.render(&mut markdown_render, &agent_info)
         } else {
-            bail!("No session")
+            bail!("当前没有活动会话")
         }
     }
 
@@ -1163,7 +1163,7 @@ impl Config {
                     .unwrap_or_else(|| session.name())
                     .to_string(),
             },
-            None => bail!("No session"),
+            None => bail!("当前没有活动会话"),
         };
         let session_path = self.session_file(&session_name);
         if let Some(session) = self.session.as_mut() {
@@ -1175,7 +1175,7 @@ impl Config {
     pub fn edit_session(&mut self) -> Result<()> {
         let name = match &self.session {
             Some(session) => session.name().to_string(),
-            None => bail!("No session"),
+            None => bail!("当前没有活动会话"),
         };
         let session_path = self.session_file(&name);
         self.save_session(Some(&name))?;
@@ -1198,7 +1198,7 @@ impl Config {
             }
             session.clear_messages();
         } else {
-            bail!("No session")
+            bail!("当前没有活动会话")
         }
         self.discontinuous_last_message();
         Ok(())
@@ -1208,7 +1208,7 @@ impl Config {
         if let Some(session) = self.session.as_mut() {
             session.set_save_session_this_time();
         } else {
-            bail!("No session")
+            bail!("当前没有活动会话")
         }
         Ok(())
     }
@@ -1262,7 +1262,7 @@ impl Config {
                     bail!("No need to compress since there are no messages in the session")
                 }
             }
-            None => bail!("No session"),
+            None => bail!("当前没有活动会话"),
         }
 
         let prompt = config
@@ -1326,7 +1326,7 @@ impl Config {
             .and_then(|v| v.chat_history_for_autonaming())
         {
             Some(v) => v,
-            None => bail!("No chat history"),
+            None => bail!("没有聊天记录"),
         };
         let role = config.read().retrieve_role(CREATE_TITLE_ROLE)?;
         let input = Input::from_str(config, &text, Some(role));
@@ -1374,7 +1374,7 @@ impl Config {
     pub async fn edit_rag_docs(config: &GlobalConfig, abort_signal: AbortSignal) -> Result<()> {
         let mut rag = match config.read().rag.clone() {
             Some(v) => v.as_ref().clone(),
-            None => bail!("No RAG"),
+            None => bail!("当前没有活动的 RAG 知识库"),
         };
 
         let document_paths = rag.document_paths();
@@ -1399,7 +1399,7 @@ impl Config {
             })
             .collect::<Vec<_>>();
         if new_document_paths.is_empty() || new_document_paths == document_paths {
-            bail!("No changes")
+            bail!("没有检测到变更")
         }
         rag.refresh_document_paths(&new_document_paths, false, config, abort_signal)
             .await?;
@@ -1410,7 +1410,7 @@ impl Config {
     pub async fn rebuild_rag(config: &GlobalConfig, abort_signal: AbortSignal) -> Result<()> {
         let mut rag = match config.read().rag.clone() {
             Some(v) => v.as_ref().clone(),
-            None => bail!("No RAG"),
+            None => bail!("当前没有活动的 RAG 知识库"),
         };
         let document_paths = rag.document_paths().to_vec();
         rag.refresh_document_paths(&document_paths, true, config, abort_signal)
@@ -1425,7 +1425,7 @@ impl Config {
                 Some(v) => Ok(v),
                 None => bail!("No sources"),
             },
-            None => bail!("No RAG"),
+            None => bail!("当前没有活动的 RAG 知识库"),
         }
     }
 
@@ -1433,7 +1433,7 @@ impl Config {
         if let Some(rag) = &self.rag {
             rag.export()
         } else {
-            bail!("No RAG")
+            bail!("当前没有活动的 RAG 知识库")
         }
     }
 
@@ -1492,10 +1492,10 @@ impl Config {
         abort_signal: AbortSignal,
     ) -> Result<()> {
         if !config.read().function_calling {
-            bail!("Please enable function calling before using the agent.");
+            bail!("使用智能体前，请先启用 Function Calling。");
         }
         if config.read().agent.is_some() {
-            bail!("Already in a agent, please run '.exit agent' first to exit the current agent.");
+            bail!("当前已处于智能体中，请先运行 '.exit agent' 退出当前智能体。");
         }
         let agent = Agent::init(config, agent_name, abort_signal).await?;
         let session = session_name.map(|v| v.to_string()).or_else(|| {
@@ -1519,7 +1519,7 @@ impl Config {
         if let Some(agent) = &self.agent {
             agent.export()
         } else {
-            bail!("No agent")
+            bail!("当前没有活动智能体")
         }
     }
 
@@ -1527,14 +1527,14 @@ impl Config {
         if let Some(agent) = &self.agent {
             Ok(agent.banner())
         } else {
-            bail!("No agent")
+            bail!("当前没有活动智能体")
         }
     }
 
     pub fn edit_agent_config(&self) -> Result<()> {
         let agent_name = match &self.agent {
             Some(agent) => agent.name(),
-            None => bail!("No agent"),
+            None => bail!("当前没有活动智能体"),
         };
         let agent_config_path = Config::agent_config_file(agent_name);
         ensure_parent_exists(&agent_config_path)?;
@@ -1593,9 +1593,9 @@ impl Config {
 
     pub fn new_macro(&mut self, name: &str) -> Result<()> {
         if self.macro_flag {
-            bail!("No macro");
+            bail!("当前没有可用宏");
         }
-        let ans = Confirm::new("Create a new macro?")
+        let ans = Confirm::new("是否创建新宏？")
             .with_default(true)
             .prompt()?;
         if ans {
@@ -1604,7 +1604,7 @@ impl Config {
             let editor = self.editor()?;
             edit_file(&editor, &macro_path)?;
         } else {
-            bail!("No macro");
+            bail!("当前没有可用宏");
         }
         Ok(())
     }
@@ -1732,7 +1732,7 @@ impl Config {
             which::which(&editor).ok().map(|_| editor)
         })
         .clone()
-        .ok_or_else(|| anyhow!("Editor not found. Please add the `editor` configuration or set the $EDITOR or $VISUAL environment variable."))
+        .ok_or_else(|| anyhow!("未找到文本编辑器。请在配置中设置 `editor`，或设置 $EDITOR / $VISUAL 环境变量。"))
     }
 
     pub fn repl_complete(
@@ -2622,21 +2622,21 @@ impl AssertState {
 }
 
 async fn create_config_file(config_path: &Path) -> Result<()> {
-    let ans = Confirm::new("No config file, create a new one?")
+    let ans = Confirm::new("未找到配置文件，是否创建一个新的配置文件？")
         .with_default(true)
         .prompt()?;
     if !ans {
         process::exit(0);
     }
 
-    let client = Select::new("API Provider (required):", list_client_types()).prompt()?;
+    let client = Select::new("API 服务商（必填）：", list_client_types()).prompt()?;
 
     let mut config = serde_json::json!({});
     let (model, clients_config) = create_client_config(client).await?;
     config["model"] = model.into();
     config[CLIENTS_FIELD] = clients_config;
 
-    let config_data = serde_yaml::to_string(&config).with_context(|| "Failed to create config")?;
+    let config_data = serde_yaml::to_string(&config).with_context(|| "创建配置文件失败")?;
     let config_data = format!(
         "# see https://github.com/sigoden/aichat/blob/main/config.example.yaml\n\n{config_data}"
     );
@@ -2651,7 +2651,7 @@ async fn create_config_file(config_path: &Path) -> Result<()> {
         std::fs::set_permissions(config_path, perms)?;
     }
 
-    println!("✓ Saved the config file to '{}'.\n", config_path.display());
+    println!("✓ 配置文件已保存至 '{}'。\n", config_path.display());
 
     Ok(())
 }
@@ -2726,7 +2726,7 @@ where
 {
     let mut rag = match config.read().rag.clone() {
         Some(v) => v.as_ref().clone(),
-        None => bail!("No RAG"),
+        None => bail!("当前没有活动的 RAG 知识库"),
     };
     f(&mut rag)?;
     config.write().rag = Some(Arc::new(rag));
